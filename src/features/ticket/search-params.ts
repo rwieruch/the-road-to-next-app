@@ -1,8 +1,23 @@
 import {
+  createParser,
   createSearchParamsCache,
   parseAsInteger,
   parseAsString,
 } from "nuqs/server";
+
+export const parseAsPositiveInteger = createParser({
+  parse: (v) => {
+    const int = parseInt(v);
+    if (Number.isNaN(int)) {
+      return null;
+    }
+    if (int < 0) {
+      return null;
+    }
+    return int;
+  },
+  serialize: (v) => Math.round(v).toFixed(),
+});
 
 export const searchParser = parseAsString.withDefault("").withOptions({
   shallow: false,
@@ -20,7 +35,7 @@ export const sortOptions = {
 };
 
 export const paginationParser = {
-  page: parseAsInteger.withDefault(0),
+  page: parseAsPositiveInteger.withDefault(0),
   size: parseAsInteger.withDefault(5),
 };
 
