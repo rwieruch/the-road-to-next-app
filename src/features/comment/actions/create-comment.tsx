@@ -15,9 +15,9 @@ const createCommentSchema = z.object({
   content: z.string().min(1).max(1024),
 });
 
-export const createComment = async (
+export const createComment = async <T = unknown,>(
   ticketId: string,
-  _actionState: ActionState,
+  _actionState: ActionState<T>,
   formData: FormData
 ) => {
   const { user } = await getAuthOrRedirect();
@@ -38,13 +38,13 @@ export const createComment = async (
       },
     });
   } catch (error) {
-    return fromErrorToActionState(error);
+    return fromErrorToActionState<T>(error);
   }
 
   revalidatePath(ticketPath(ticketId));
 
-  return toActionState("SUCCESS", "Comment created", undefined, {
+  return toActionState<T>("SUCCESS", "Comment created", undefined, {
     ...comment,
     isOwner: true,
-  });
+  } as T);
 };
