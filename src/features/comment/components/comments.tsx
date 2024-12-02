@@ -42,9 +42,61 @@ const Comments = ({ ticketId, paginatedComments }: CommentsProps) => {
 
   const queryClient = useQueryClient();
 
-  const handleDeleteComment = () => queryClient.invalidateQueries({ queryKey });
+  const handleDeleteComment = (id: string) => {
+    queryClient.setQueryData<{
+      pages: PaginatedData<CommentWithMetadata>[];
+      pageParams: string | undefined;
+    }>(queryKey, (old) => {
+      if (!old || !old.pages) {
+        return old;
+      }
 
-  const handleCreateComment = () => queryClient.invalidateQueries({ queryKey });
+      const filteredPages = old.pages.map((page) => ({
+        ...page,
+        list: page.list.filter((item) => item.id !== id), // Filter the list for each page
+      }));
+
+      const updatedPages = { ...old, pages: filteredPages };
+
+      console.log({ pagesAfter: updatedPages });
+
+      return updatedPages;
+    });
+
+    //queryClient.invalidateQueries({ queryKey });
+  };
+
+  const handleCreateComment = (comment: CommentWithMetadata | undefined) => {
+    queryClient.setQueryData<{
+      pages: PaginatedData<CommentWithMetadata>[];
+      pageParams: string | undefined;
+    }>(queryKey, (old) => {
+      if (!comment) {
+        return old;
+      }
+
+      if (!old) {
+        return old;
+      }
+
+      const updatedPages = {
+        ...old,
+        pages: [
+          {
+            ...old.pages[0], // Adding to the first page
+            list: [comment, ...(old.pages[0]?.list ?? [])], // Add comment to the list
+          },
+          ...old.pages.slice(1), // Preserve the rest of the pages
+        ],
+      };
+
+      console.log({ pagesAfter: updatedPages });
+
+      return updatedPages;
+    });
+
+    //queryClient.invalidateQueries({ queryKey });
+  };
 
   const { ref, inView } = useInView();
 
